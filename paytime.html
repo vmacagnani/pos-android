@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuração de APN para POS Android</title>
+    <link rel="icon" type="image/x-icon" href="https://github.com/vmacagnani/api-pre-os/raw/main/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Efeito de transição suave para as telas */
+        .screen-view {
+            transition: opacity 0.3s ease-in-out;
+            position: absolute;
+            inset: 0;
+            /* Fundo transparente para que o logo de fundo apareça */
+            background-color: transparent;
+        }
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0.5rem;
+            border-bottom-width: 1px;
+            border-color: #d1d5db; /* border-gray-300 */
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .list-item:hover {
+            background-color: #e5e7eb; /* bg-gray-200 */
+        }
+        /* Efeito de pulsação para guiar o usuário */
+        .clickable-item {
+            animation: pulse 2s infinite;
+            border-radius: 0.5rem; /* rounded-lg */
+        }
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-200 flex items-center justify-center min-h-screen p-4">
+
+    <main class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl w-full">
+        <!-- Coluna Esquerda: Simulador do POS -->
+        <div class="flex justify-center items-center">
+            <div class="w-full max-w-sm mx-auto bg-gray-800 rounded-3xl border-8 border-gray-900 shadow-2xl overflow-hidden">
+                <!-- Tela do POS -->
+                <div id="pos-screen" class="h-[600px] relative bg-gray-200">
+                    
+                    <!-- Logo da Paytime como marca d'água -->
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div class="text-center">
+                            <img src="https://logo.clearbit.com/paytime.com.br" class="h-32 opacity-20 mx-auto" alt="Logo Paytime" onerror="this.onerror=null;this.src='https://placehold.co/128x128/e2e8f0/64748b?text=Paytime';">
+                            <p class="text-2xl font-bold text-gray-900 opacity-20 mt-2">PAYTIME</p>
+                        </div>
+                    </div>
+
+                    <!-- 1. Tela Inicial -->
+                    <div id="screen-home" class="screen-view p-4 flex flex-col items-center justify-center text-center">
+                        <div id="btn-settings-icon" class="text-center p-2 rounded-lg transition-colors">
+                            <div class="w-16 h-16 bg-gray-500 rounded-2xl flex items-center justify-center mb-1 text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            </div>
+                            <span class="text-sm text-gray-700">Configurar</span>
+                        </div>
+                        <p id="home-message" class="mt-8 text-gray-500">Selecione uma operadora ao lado para iniciar a simulação.</p>
+                    </div>
+
+                    <!-- 2. Tela de Configurações -->
+                    <div id="screen-settings" class="screen-view p-2 opacity-0">
+                         <h2 class="text-xl font-semibold p-2 text-gray-800">Configurar</h2>
+                         <div id="btn-connections" class="list-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071a10 10 0 0114.142 0M1.394 8.929a15 15 0 0121.212 0" /></svg>
+                            <span class="font-medium">Conexões</span>
+                         </div>
+                    </div>
+
+                    <!-- 3. Tela de Conexões -->
+                    <div id="screen-connections" class="screen-view p-2 opacity-0">
+                        <h2 class="text-xl font-semibold p-2 text-gray-800">Conexões</h2>
+                        <div id="btn-mobile-networks" class="list-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span class="font-medium">Redes móveis</span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Tela de Redes Móveis -->
+                    <div id="screen-mobile-networks" class="screen-view p-2 opacity-0">
+                        <h2 class="text-xl font-semibold p-2 text-gray-800">Redes móveis</h2>
+                        <div id="btn-apn" class="list-item">
+                            <span class="font-medium">Pontos de acesso</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 5. Tela de Pontos de Acesso -->
+                    <div id="screen-apn-list" class="screen-view p-2 opacity-0">
+                        <div class="flex justify-between items-center p-2">
+                             <h2 class="text-xl font-semibold text-gray-800">Pontos de acesso</h2>
+                             <button id="btn-add-apn" class="text-blue-600 text-3xl font-light p-1 leading-none rounded-md">+</button>
+                        </div>
+                        <div class="p-2 text-center text-gray-500">Nenhum APN configurado.</div>
+                    </div>
+
+                    <!-- 6. Tela de Edição de APN -->
+                    <div id="screen-apn-edit" class="screen-view p-2 opacity-0">
+                        <div class="flex justify-between items-center p-2">
+                            <h2 class="text-xl font-semibold text-gray-800">Editar ponto de acesso</h2>
+                            <button id="btn-save-apn" class="text-blue-600 font-semibold px-2 py-1 rounded-md">SALVAR</button>
+                        </div>
+                        <div class="space-y-4 text-sm p-2">
+                            <div><label class="text-gray-500">Nome</label><input type="text" id="sim-apn-name" class="w-full bg-transparent border-b border-gray-400 focus:outline-none" readonly></div>
+                            <div><label class="text-gray-500">APN</label><input type="text" id="sim-apn-value" class="w-full bg-transparent border-b border-gray-400 focus:outline-none" readonly></div>
+                            <div><label class="text-gray-500">Nome de usuário</label><input type="text" id="sim-apn-user" class="w-full bg-transparent border-b border-gray-400 focus:outline-none" readonly></div>
+                            <div><label class="text-gray-500">Senha</label><input type="text" id="sim-apn-password" class="w-full bg-transparent border-b border-gray-400 focus:outline-none" readonly></div>
+                            <p class="text-xs text-gray-500 pt-4">* Os outros campos podem ser deixados em branco.</p>
+                        </div>
+                    </div>
+
+                    <!-- 7. Tela de Pontos de Acesso Salvo -->
+                    <div id="screen-apn-list-saved" class="screen-view p-2 opacity-0">
+                        <h2 class="text-xl font-semibold p-2 text-gray-800">Pontos de acesso</h2>
+                        <div class="list-item bg-blue-100 border-l-4 border-blue-500">
+                             <div class="w-full">
+                                <span id="saved-apn-name" class="font-medium text-gray-800">AVATEK</span>
+                             </div>
+                             <input type="radio" name="apn-select" checked class="form-radio h-5 w-5 text-blue-600">
+                        </div>
+                         <p class="mt-4 text-center text-sm text-green-600 font-semibold">APN configurado com sucesso!</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Coluna Direita: Controles de Configuração -->
+        <div class="w-full bg-white rounded-xl shadow-lg p-6 sm:p-8 self-center">
+            <div class="text-center">
+                <img src="https://raw.githubusercontent.com/vmacagnani/pos-android/main/logo-avatek-azul-laranja.svg" alt="Logo Avatek" class="h-12 mx-auto">
+                <h1 class="text-2xl font-bold text-gray-800 mt-2">Simulador de Configuração Android</h1>
+                <p class="text-gray-500 mt-2">Siga a simulação ao lado para configurar o seu POS.</p>
+            </div>
+
+            <div class="mt-8">
+                <label for="operator-select" class="block text-sm font-medium text-gray-700">1. Selecione a operadora</label>
+                <select id="operator-select" class="mt-2 block w-full pl-3 pr-10 py-3 text-base bg-slate-100 border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg">
+                    <option value="">Escolha uma operadora...</option>
+                    <option value="vivo">Vivo</option>
+                    <option value="claro">Claro</option>
+                    <option value="tim">TIM</option>
+                    <option value="nlt">NLT</option>
+                    <option value="linksfield">Linksfield</option>
+                    <option value="emnify">Emnify</option>
+                    <option value="eseye">ESEYE</option>
+                    <option value="vivo_bl">Vivo Banda Larga</option>
+                    <option value="claro_bl">Claro Banda Larga</option>
+                    <option value="tim_bl">TIM Banda Larga</option>
+                </select>
+            </div>
+
+            <div id="config-details" class="mt-8 hidden">
+                <h2 class="text-lg font-semibold text-gray-800">2. Dados para configuração</h2>
+                <div class="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3 text-sm">
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-gray-600">Nome:</span>
+                        <span id="apn-name" class="font-mono text-gray-800 bg-gray-200 px-2 py-1 rounded"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-gray-600">APN:</span>
+                        <span id="apn-value" class="font-mono text-gray-800 bg-gray-200 px-2 py-1 rounded"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-gray-600">Usuário:</span>
+                        <span id="apn-user" class="font-mono text-gray-800 bg-gray-200 px-2 py-1 rounded"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-gray-600">Senha:</span>
+                        <span id="apn-password" class="font-mono text-gray-800 bg-gray-200 px-2 py-1 rounded"></span>
+                    </div>
+                    <p class="text-xs text-gray-500 pt-2">* Os demais itens podem ser deixados em branco ou com os valores padrão.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Referências aos Elementos do DOM ---
+            const operatorSelect = document.getElementById('operator-select');
+            const configDetails = document.getElementById('config-details');
+            
+            // Telas do simulador
+            const screens = document.querySelectorAll('.screen-view');
+            const screenHome = document.getElementById('screen-home');
+            const screenSettings = document.getElementById('screen-settings');
+            const screenConnections = document.getElementById('screen-connections');
+            const screenMobileNetworks = document.getElementById('screen-mobile-networks');
+            const screenApnList = document.getElementById('screen-apn-list');
+            const screenApnEdit = document.getElementById('screen-apn-edit');
+            const screenApnListSaved = document.getElementById('screen-apn-list-saved');
+
+            // Botões de navegação da simulação
+            const btnSettingsIcon = document.getElementById('btn-settings-icon');
+            const btnConnections = document.getElementById('btn-connections');
+            const btnMobileNetworks = document.getElementById('btn-mobile-networks');
+            const btnApn = document.getElementById('btn-apn');
+            const btnAddApn = document.getElementById('btn-add-apn');
+            const btnSaveApn = document.getElementById('btn-save-apn');
+            
+            // Elementos de dados
+            const homeMessage = document.getElementById('home-message');
+            const simApnName = document.getElementById('sim-apn-name');
+            const simApnValue = document.getElementById('sim-apn-value');
+            const simApnUser = document.getElementById('sim-apn-user');
+            const simApnPassword = document.getElementById('sim-apn-password');
+            const apnName = document.getElementById('apn-name');
+            const apnValue = document.getElementById('apn-value');
+            const apnUser = document.getElementById('apn-user');
+            const apnPassword = document.getElementById('apn-password');
+            const savedApnName = document.getElementById('saved-apn-name');
+
+            // --- Dados de APN ---
+            const apnData = {
+                vivo: { name: 'AVATEK', apn: 'avatek.br', user: 'avatek', password: 'avatek' },
+                claro: { name: 'AVATEK', apn: 'avatek.br', user: 'avatek', password: 'avatek' },
+                tim: { name: 'AVATEK', apn: 'avatek.br', user: 'avatek', password: 'avatek' },
+                nlt: { name: 'AVATEK', apn: 'avatek.br', user: 'avatek', password: 'avatek' },
+                linksfield: { name: 'AVATEK', apn: 'avatek.br', user: 'avatek', password: 'avatek' },
+                emnify: { name: 'AVATEK', apn: 'avatek.br', user: 'avatek', password: 'avatek' },
+                eseye: { name: 'AVATEK', apn: 'eseye.com', user: 'user', password: 'pass' },
+                vivo_bl: { name: 'AVATEK', apn: 'avatekbl.br', user: 'avatek', password: 'avatek' },
+                claro_bl: { name: 'AVATEK', apn: 'avatekbl.br', user: 'avatek', password: 'avatek' },
+                tim_bl: { name: 'AVATEK', apn: 'avatekbl.br', user: 'avatek', password: 'avatek' }
+            };
+
+            let currentApnData = null;
+            let simulationActive = false;
+            let activeClickableElement = null;
+
+            // --- Funções ---
+            function highlightElement(element) {
+                if (activeClickableElement) {
+                    activeClickableElement.classList.remove('clickable-item');
+                }
+                if (element) {
+                    element.classList.add('clickable-item');
+                    activeClickableElement = element;
+                } else {
+                    activeClickableElement = null;
+                }
+            }
+
+            function navigateTo(screenToShow, nextClickableElement) {
+                screens.forEach(screen => {
+                    screen.style.opacity = '0';
+                    screen.style.pointerEvents = 'none';
+                });
+                screenToShow.style.opacity = '1';
+                screenToShow.style.pointerEvents = 'auto';
+                highlightElement(nextClickableElement);
+            }
+
+            function resetSimulation() {
+                navigateTo(screenHome, null);
+                simulationActive = false;
+                currentApnData = null;
+                configDetails.classList.add('hidden');
+                btnSettingsIcon.style.cursor = 'default';
+                btnSettingsIcon.firstElementChild.classList.remove('bg-blue-500');
+                btnSettingsIcon.firstElementChild.classList.add('bg-gray-500');
+                homeMessage.textContent = 'Selecione uma operadora ao lado para iniciar a simulação.';
+            }
+
+            // --- Lógica Principal ---
+            resetSimulation();
+
+            operatorSelect.addEventListener('change', function() {
+                const selectedOperator = this.value;
+                resetSimulation();
+                if (selectedOperator && apnData[selectedOperator]) {
+                    currentApnData = apnData[selectedOperator];
+                    simulationActive = true;
+                    
+                    btnSettingsIcon.style.cursor = 'pointer';
+                    btnSettingsIcon.firstElementChild.classList.add('bg-blue-500');
+                    btnSettingsIcon.firstElementChild.classList.remove('bg-gray-500');
+                    homeMessage.textContent = 'Clique no ícone "Configurar" para começar.';
+                    highlightElement(btnSettingsIcon);
+
+                    apnName.textContent = currentApnData.name;
+                    apnValue.textContent = currentApnData.apn;
+                    apnUser.textContent = currentApnData.user;
+                    apnPassword.textContent = currentApnData.password;
+                    configDetails.classList.remove('hidden');
+                }
+            });
+
+            // --- Navegação da Simulação ---
+            btnSettingsIcon.addEventListener('click', () => simulationActive && navigateTo(screenSettings, btnConnections));
+            btnConnections.addEventListener('click', () => simulationActive && navigateTo(screenConnections, btnMobileNetworks));
+            btnMobileNetworks.addEventListener('click', () => simulationActive && navigateTo(screenMobileNetworks, btnApn));
+            btnApn.addEventListener('click', () => simulationActive && navigateTo(screenApnList, btnAddApn));
+            
+            btnAddApn.addEventListener('click', () => {
+                if (simulationActive && currentApnData) {
+                    simApnName.value = currentApnData.name;
+                    simApnValue.value = currentApnData.apn;
+                    simApnUser.value = currentApnData.user;
+                    simApnPassword.value = currentApnData.password;
+                    navigateTo(screenApnEdit, btnSaveApn);
+                }
+            });
+
+            btnSaveApn.addEventListener('click', () => {
+                if (simulationActive && currentApnData) {
+                    savedApnName.textContent = currentApnData.name;
+                    navigateTo(screenApnListSaved, null);
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
