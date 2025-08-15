@@ -74,7 +74,7 @@
                         <p id="home-message" class="mt-8 text-gray-500">Selecione uma operadora ao lado para iniciar.</p>
                     </div>
                     <div id="screen-settings" class="screen-view p-2 opacity-0"><h2 class="text-xl font-semibold p-2 text-gray-800">Configurar</h2><div id="btn-connections" class="list-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071a10 10 0 0114.142 0M1.394 8.929a15 15 0 0121.212 0" /></svg><span class="font-medium">Conexões</span></div></div>
-                    <div id="screen-connections" class="screen-view p-2 opacity-0"><h2 class="text-xl font-semibold p-2 text-gray-800">Conexões</h2><div id="btn-mobile-networks" class="list-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span class="font-medium">Redes móveis</span></div></div>
+                    <div id="screen-connections" class="screen-view p-2 opacity-0"><h2 class="text-xl font-semibold p-2 text-gray-800">Conexões</h2><div id="btn-mobile-networks" class="list-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-8 0 9 9 0 0118 0z" /></svg><span class="font-medium">Redes móveis</span></div></div>
                     <div id="screen-mobile-networks" class="screen-view p-2 opacity-0"><h2 class="text-xl font-semibold p-2 text-gray-800">Redes móveis</h2><div id="btn-apn" class="list-item"><span class="font-medium">Pontos de acesso</span></div></div>
                     <div id="screen-apn-list" class="screen-view p-2 opacity-0">
                         <div class="flex justify-between items-center p-2">
@@ -86,6 +86,7 @@
                         </div>
                         <div class="p-2 text-center text-gray-500">Nenhum APN configurado.</div>
                         <div id="menu-scan-qr" class="absolute top-12 right-2 bg-white rounded-md shadow-lg py-1 hidden"><div id="btn-scan-qr" class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">Escanear QR Code de APN</div></div>
+                        <p id="apn-list-instructions" class="mt-4 text-center text-sm text-gray-600 hidden">Clique em <span class="font-bold text-blue-600">+</span> para adicionar manualmente ou em <span class="font-bold text-gray-800">⋮</span> para escanear.</p>
                     </div>
                     <div id="screen-camera" class="screen-view p-4 opacity-0 flex flex-col items-center justify-center bg-gray-900 text-white">
                         <p class="mb-4">Aponte para o QR Code</p>
@@ -149,6 +150,7 @@
             const btnScanQr = document.getElementById('btn-scan-qr');
             const btnSaveApn = document.getElementById('btn-save-apn');
             const homeMessage = document.getElementById('home-message');
+            const apnListInstructions = document.getElementById('apn-list-instructions');
             const simApnName = document.getElementById('sim-apn-name');
             const simApnValue = document.getElementById('sim-apn-value');
             const simApnUser = document.getElementById('sim-apn-user');
@@ -176,26 +178,29 @@
 
             let currentApnData = null;
             let simulationActive = false;
-            let activeClickableElement = null;
+            let activeClickableElements = [];
 
-            function highlightElement(element) {
-                if (activeClickableElement) activeClickableElement.classList.remove('clickable-item');
-                if (element) {
-                    element.classList.add('clickable-item');
-                    activeClickableElement = element;
-                } else {
-                    activeClickableElement = null;
+            function highlightElements(elements) {
+                activeClickableElements.forEach(el => el.classList.remove('clickable-item'));
+                activeClickableElements = [];
+
+                if (elements) {
+                    const elementsArray = Array.isArray(elements) ? elements : [elements];
+                    elementsArray.forEach(el => {
+                        el.classList.add('clickable-item');
+                        activeClickableElements.push(el);
+                    });
                 }
             }
 
-            function navigateTo(screenToShow, nextClickableElement) {
+            function navigateTo(screenToShow, nextClickableElements) {
                 screens.forEach(screen => {
                     screen.style.opacity = '0';
                     screen.style.pointerEvents = 'none';
                 });
                 screenToShow.style.opacity = '1';
                 screenToShow.style.pointerEvents = 'auto';
-                highlightElement(nextClickableElement);
+                highlightElements(nextClickableElements);
             }
 
             function resetSimulation() {
@@ -204,6 +209,7 @@
                 currentApnData = null;
                 configDetails.classList.add('hidden');
                 qrcodeContainer.classList.add('hidden');
+                apnListInstructions.classList.add('hidden');
                 btnSettingsIcon.style.cursor = 'default';
                 btnSettingsIcon.firstElementChild.classList.remove('bg-blue-500');
                 btnSettingsIcon.firstElementChild.classList.add('bg-gray-500');
@@ -223,7 +229,7 @@
                     btnSettingsIcon.firstElementChild.classList.add('bg-blue-500');
                     btnSettingsIcon.firstElementChild.classList.remove('bg-gray-500');
                     homeMessage.textContent = 'Clique no ícone "Configurar" para começar.';
-                    highlightElement(btnSettingsIcon);
+                    highlightElements(btnSettingsIcon);
 
                     apnName.textContent = currentApnData.name;
                     apnValue.textContent = currentApnData.apn;
@@ -246,16 +252,17 @@
             btnMobileNetworks.addEventListener('click', () => simulationActive && navigateTo(screenMobileNetworks, btnApn));
             btnApn.addEventListener('click', () => {
                 if (simulationActive) {
-                    navigateTo(screenApnList, btnAddApn);
-                    highlightElement(btnAddApn); 
+                    navigateTo(screenApnList, [btnAddApn, btnMoreOptions]);
+                    apnListInstructions.classList.remove('hidden');
                 }
             });
             
             btnMoreOptions.addEventListener('click', (e) => {
                 if (simulationActive) {
                     e.stopPropagation();
+                    apnListInstructions.classList.add('hidden');
                     menuScanQr.classList.toggle('hidden');
-                    highlightElement(btnScanQr);
+                    highlightElements(btnScanQr);
                 }
             });
 
@@ -277,6 +284,7 @@
 
             btnAddApn.addEventListener('click', () => {
                 if (simulationActive && currentApnData) {
+                    apnListInstructions.classList.add('hidden');
                     simApnName.value = currentApnData.name;
                     simApnValue.value = currentApnData.apn;
                     simApnUser.value = currentApnData.user;
